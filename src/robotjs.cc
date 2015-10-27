@@ -626,6 +626,46 @@ NAN_METHOD(getScreenSize)
 	info.GetReturnValue().Set(obj);
 }
 
+NAN_METHOD(getForegroundWindowRect)
+{
+	HWND hwnd = GetForegroundWindow();
+	if (!hwnd)
+	{
+		return Nan::ThrowError("No foreground window.");
+	}
+
+	RECT rect;
+	if (!GetWindowRect(hwnd, &rect))
+	{
+		return Nan::ThrowError("Failed to get window rect.");	
+	}
+
+ 	//Return object with .x and .y.
+	Local<Object> obj = Nan::New<Object>();
+    Nan::Set(obj, Nan::New("left").ToLocalChecked(), Nan::New((int)rect.left));
+    Nan::Set(obj, Nan::New("top").ToLocalChecked(), Nan::New((int)rect.top));
+    Nan::Set(obj, Nan::New("width").ToLocalChecked(), Nan::New((int)(rect.right-rect.left)));
+    Nan::Set(obj, Nan::New("height").ToLocalChecked(), Nan::New((int)(rect.bottom-rect.top)));
+	info.GetReturnValue().Set(obj);
+}
+
+NAN_METHOD(getForegroundWindowName)
+{
+	HWND hwnd = GetForegroundWindow();
+	if (!hwnd)
+	{
+		return Nan::ThrowError("No foreground window.");
+	}
+
+	char name[1024];
+	if (!GetWindowText(hwnd, name, 1024))
+	{
+		return Nan::ThrowError("Failed to get window name.");	
+	}
+
+	info.GetReturnValue().Set(Nan::New(name).ToLocalChecked());
+}
+
 NAN_MODULE_INIT(InitAll)
 {
 
@@ -667,6 +707,12 @@ NAN_MODULE_INIT(InitAll)
 
     Nan::Set(target, Nan::New("getScreenSize").ToLocalChecked(),
         Nan::GetFunction(Nan::New<FunctionTemplate>(getScreenSize)).ToLocalChecked());
+
+    Nan::Set(target, Nan::New("getForegroundWindowRect").ToLocalChecked(),
+        Nan::GetFunction(Nan::New<FunctionTemplate>(getForegroundWindowRect)).ToLocalChecked());
+
+    Nan::Set(target, Nan::New("getForegroundWindowName").ToLocalChecked(),
+        Nan::GetFunction(Nan::New<FunctionTemplate>(getForegroundWindowName)).ToLocalChecked());    
 }
 
 NODE_MODULE(robotjs, InitAll)
