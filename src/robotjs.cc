@@ -666,6 +666,52 @@ NAN_METHOD(getForegroundWindowName)
 	info.GetReturnValue().Set(Nan::New(name).ToLocalChecked());
 }
 
+SHORT statePrev[256] = {0};
+
+NAN_METHOD(checkForInput)
+{
+	OutputDebugString("Checking for input\r\n");
+
+	if (nextInputBufferIndex > 0) 
+	{
+		char buf[1024];
+		sprintf(buf, "Got %d input events\r\n", nextInputBufferIndex);
+		OutputDebugString(buf);
+		nextInputBufferIndex = 0;
+	}
+
+	SHORT stateNow[256];
+	for (int i = 0; i < 256; ++i) 
+	{
+		stateNow[i] = GetAsyncKeyState(i);
+	}
+
+	Local<Array> arr = Nan::New<Array>();
+	int outputIndex = 0;
+
+	for (int i = 0; i < 256; ++i) 
+	{
+		if (statePrev[i] != stateNow[i]) 
+		{
+			// Change of state.
+			char buf[1024];
+			sprintf(buf, "Change of state on key code: %d, value: %d\r\n", i, stateNow[i]);
+			OutputDebugString(buf);
+
+			Local<Object> obj = Nan::New<Object>();
+		    Nan::Set(obj, Nan::New("code").ToLocalChecked(), Nan::New((int)i));
+		    Nan::Set(obj, Nan::New("state").ToLocalChecked(), Nan::New((int)stateNow[i]));
+
+			Nan::Set(arr, Nan::New(outputIndex), obj);
+			++outputIndex;
+		}
+
+		statePrev[i] = stateNow[i];
+	}
+
+	info.GetReturnValue().Set(arr);
+}
+
 NAN_MODULE_INIT(InitAll)
 {
 
@@ -713,6 +759,9 @@ NAN_MODULE_INIT(InitAll)
 
     Nan::Set(target, Nan::New("getForegroundWindowName").ToLocalChecked(),
         Nan::GetFunction(Nan::New<FunctionTemplate>(getForegroundWindowName)).ToLocalChecked());    
+
+    Nan::Set(target, Nan::New("checkForInput").ToLocalChecked(),
+        Nan::GetFunction(Nan::New<FunctionTemplate>(checkForInput)).ToLocalChecked());        
 }
 
 NODE_MODULE(robotjs, InitAll)
