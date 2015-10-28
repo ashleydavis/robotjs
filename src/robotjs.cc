@@ -670,16 +670,6 @@ SHORT statePrev[256] = {0};
 
 NAN_METHOD(checkForInput)
 {
-	OutputDebugString("Checking for input\r\n");
-
-	if (nextInputBufferIndex > 0) 
-	{
-		char buf[1024];
-		sprintf(buf, "Got %d input events\r\n", nextInputBufferIndex);
-		OutputDebugString(buf);
-		nextInputBufferIndex = 0;
-	}
-
 	SHORT stateNow[256];
 	for (int i = 0; i < 256; ++i) 
 	{
