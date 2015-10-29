@@ -673,7 +673,7 @@ NAN_METHOD(checkForInput)
 	SHORT stateNow[256];
 	for (int i = 0; i < 256; ++i) 
 	{
-		stateNow[i] = GetAsyncKeyState(i);
+		stateNow[i] = GetAsyncKeyState(i) & ~1; // Mask out LSB, it is unreliable.
 	}
 
 	Local<Array> arr = Nan::New<Array>();
@@ -684,13 +684,13 @@ NAN_METHOD(checkForInput)
 		if (statePrev[i] != stateNow[i]) 
 		{
 			// Change of state.
-			char buf[1024];
-			sprintf(buf, "Change of state on key code: %d, value: %d\r\n", i, stateNow[i]);
-			OutputDebugString(buf);
+			//char buf[1024];
+			//sprintf(buf, "Change of state on key code: %d, value: %d\r\n", i, stateNow[i]);
+			//OutputDebugString(buf);
 
 			Local<Object> obj = Nan::New<Object>();
 		    Nan::Set(obj, Nan::New("code").ToLocalChecked(), Nan::New((int)i));
-		    Nan::Set(obj, Nan::New("state").ToLocalChecked(), Nan::New((int)stateNow[i]));
+		    Nan::Set(obj, Nan::New("down").ToLocalChecked(), Nan::New((int)stateNow[i] != 0));
 
 			Nan::Set(arr, Nan::New(outputIndex), obj);
 			++outputIndex;
